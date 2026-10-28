@@ -61,6 +61,22 @@ var Flags = map[string]Flag{
 	"timeout":  {Name: "timeout", Type: "duration", Default: "5s", Help: "Operation deadline (e.g. 5s, 30s, 2m)"},
 	"interval": {Name: "interval", Type: "duration", Default: "150ms", Help: "Poll interval while waiting on a job"},
 	"service":  {Name: "service", Type: "string", Help: "discover only: require this advertised GATT service UUID"},
+	"source":   {Name: "source", Type: "string", Default: "auto", Help: "visualize audio source: auto, @DEFAULT_MONITOR@, @DEFAULT_SOURCE@, or a Pulse/PipeWire source name"},
+	"rate":     {Name: "rate", Type: "int", Default: "10", Help: "visualize maximum frames per second (1-20)"},
+	"sensitivity": {
+		Name: "sensitivity", Type: "float", Default: "1", Help: "visualize audio sensitivity multiplier (0.1-10)",
+	},
+	"smoothing": {
+		Name: "smoothing", Type: "float", Default: "0.65", Help: "visualize smoothing 0-0.95; higher is calmer",
+	},
+	"min-brightness": {
+		Name: "min-brightness", Type: "int", Default: "6", Help: "visualize minimum brightness percent (0-100)",
+	},
+	"max-brightness": {
+		Name: "max-brightness", Type: "int", Default: "80", Help: "visualize maximum brightness percent (0-100)",
+	},
+	"duration": {Name: "duration", Type: "duration", Default: "0s", Help: "visualize run length; 0 runs until Ctrl+C"},
+	"restore":  {Name: "restore", Type: "string", Default: "white", Help: "visualize exit restore: white, off, or none", Enum: "visualizer_restore"},
 	"name":     {Name: "name", Type: "string", Help: "discover: case-insensitive name substring; pair: advertised name to record"},
 	"status":   {Name: "status", Type: "string", Help: "job list row filter", Enum: "job_status"},
 	"note":     {Name: "note", Type: "string", Help: "Feedback text or profile note"},
@@ -73,6 +89,9 @@ var Enums = map[string][]string{
 	"effect":      {"solid", "rainbow", "wave", "breathing", "flash"},
 	"job_status":  {"pending", "running", "done", "error"},
 	"deliver":     {"stdout", "file:<path>", "webhook:<url>"},
+	"visualizer_restore": {
+		"white", "off", "none",
+	},
 }
 
 var Commands = []Command{
@@ -136,6 +155,19 @@ var Commands = []Command{
 			"syska-sonic-cli set brightness 40 --json",
 			"syska-sonic-cli set color #ff8800 --dry-run --json",
 			"syska-sonic-cli set effect rainbow --speed 3 --json",
+		},
+	},
+	{
+		Name: "visualize", Op: "device.visualize", Group: "device", Mutating: true,
+		Flags: []FlagRef{
+			{Name: "json"}, {Name: "deliver"}, {Name: "dry-run"}, {Name: "yes"},
+			{Name: "profile"}, {Name: "source"}, {Name: "rate"}, {Name: "sensitivity"}, {Name: "smoothing"},
+			{Name: "min-brightness"}, {Name: "max-brightness"}, {Name: "duration"}, {Name: "restore"},
+		},
+		Examples: []string{
+			"syska-sonic-cli visualize --dry-run --json",
+			"syska-sonic-cli visualize --yes --duration 30s",
+			"syska-sonic-cli visualize --yes --source @DEFAULT_MONITOR@ --rate 8",
 		},
 	},
 	{
@@ -231,6 +263,14 @@ var Workflows = []Workflow{
 		},
 	},
 	{
+		Name: "visualize",
+		Steps: []string{
+			"syska-sonic-cli visualize --dry-run --json",
+			"syska-sonic-cli visualize --yes --duration 30s --rate 10",
+			"syska-sonic-cli set color white --json",
+		},
+	},
+	{
 		Name: "async",
 		Steps: []string{
 			"syska-sonic-cli discover --bg --wait --json",
@@ -257,7 +297,7 @@ var Notes = []string{
 	"listings are bounded: --limit default 20, --limit 0 for all rows",
 	"discover --bg --wait returns the durable job instead of blocking; no client polling loops needed",
 	"profiles carry identity (flag --profile > env SSCLI_PROFILE/SSCLI_MAC > default profile) so agents never re-specify flags",
-	"protocol status: the device speaks classic-BT SPP (RFCOMM ch2, JL_SPP), NOT GATT, with XOR-obfuscated A2 frames; set color (g 0x08, live-confirmed), brightness, power (lamp switch j 0x0E), and effect (mix modes, speed uncalibrated) are wired; get is not implementable (module never responds); sendraw <hex> probes bytes deterministically; docs/re-notes.md holds the decoded frames",
+	"protocol status: the device speaks classic-BT SPP (RFCOMM ch2, JL_SPP), NOT GATT, with XOR-obfuscated A2 frames; set color (g 0x08, live-confirmed), brightness, power (lamp switch j 0x0E), effect (mix modes, speed uncalibrated), and visualize (audio-reactive, rate-capped at 20 fps) are wired; get is not implementable (module never responds); sendraw <hex> probes bytes deterministically; docs/re-notes.md holds the decoded frames",
 	"profiles and feedback live in XDG config/state dirs; see docs/agent.md",
 }
 
