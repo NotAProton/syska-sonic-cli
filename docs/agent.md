@@ -43,9 +43,19 @@ syska-sonic-cli set brightness 40 --json
 syska-sonic-cli set color #ff8800 --json
 syska-sonic-cli set effect rainbow --speed 3 --json
 ```
+
+### 3. Audio-reactive visualizer
+```console
+syska-sonic-cli visualize --dry-run --json
+syska-sonic-cli visualize --yes --duration 30s --json
+```
+The visualizer keeps one SPP session, defaults to 10 fps (hard cap 20),
+smooths and quantizes colors, and deduplicates unchanged frames. `--source
+auto` prefers the target speaker's Bluetooth monitor when present. Do not
+drive the lamp with per-frame `set` invocations; each one reconnects.
 All set ops are idempotent; identical repeats converge, so retry only on exit 6.
 
-### 3. Async / background
+### 4. Async / background
 ```console
 syska-sonic-cli discover --bg --wait --json
 syska-sonic-cli job list --json
@@ -53,7 +63,7 @@ syska-sonic-cli job get <id> --json --deliver file:job.json
 syska-sonic-cli job wait <id> --timeout 2m --json
 ```
 
-### 4. Feedback loop
+### 5. Feedback loop
 ```console
 syska-sonic-cli feedback add --note "black-box: set color fails with exit 4" --json
 syska-sonic-cli feedback list --json --limit 20

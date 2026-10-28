@@ -8,6 +8,7 @@ $ ./bin/syska-sonic-cli discover
 $ ./bin/syska-sonic-cli profile add --name desk --mac AA:BB:CC:DD:EE:FF
 $ ./bin/syska-sonic-cli profile default desk
 $ ./bin/syska-sonic-cli set power on --dry-run --json
+$ ./bin/syska-sonic-cli visualize --dry-run --json
 ```
 
 ## Design (for humans and agents)
@@ -33,9 +34,10 @@ Tier 2 — compounding:
   audio over A2DP. Full wire map: `docs/re-notes.md`.
 - Working today: `discover` (LE), `pair` (classic, non-interactive), `set color`
   (solid `g(0x08)`, live-confirmed blue hold), `set brightness`, `set effect`
-  (mix modes, speed uncalibrated), `sendraw` (byte-level calibration), profiles,
-  jobs, feedback, agent-context, doctor. Frames use the app's XOR-obfuscated
-  A2 framing (see `docs/re-notes.md`).
+  (mix modes, speed uncalibrated), `visualize` (cautious audio-reactive
+  streaming over one persistent SPP session), `sendraw` (byte-level
+  calibration), profiles, jobs, feedback, agent-context, doctor. Frames use
+  the app's XOR-obfuscated A2 framing (see `docs/re-notes.md`).
 - Live-calibrated (2026-10-16): `set power` (lamp switch on/off) and `set effect` (mix modes; speed x10 mapping,
   direction unverified). State `get` is unimplementable: the module never
   sends response frames.
